@@ -47,3 +47,51 @@ export type ScenarioExpense = {
   isEssential: boolean
   monthlyEquivalent: number
 }
+
+export type ScoreStatus =
+  | 'NOT_RECOMMENDED'
+  | 'VIABLE_BUT_FRAGILE'
+  | 'STABLE_BUT_SENSITIVE'
+  | 'TRANQUILO'
+
+export type ConfidenceLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+
+export type RiskSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+
+export type ScoreFactor = {
+  key: string
+  label: string
+  valueText: string
+  impact: number
+  weight: number
+  explanation: string
+}
+
+export type RiskFactor = {
+  key: string
+  severity: RiskSeverity
+  title: string
+  explanation: string
+}
+
+export type ScenarioScore = {
+  snapshotId: number
+  scenarioId: number
+  score: number
+  status: ScoreStatus
+  confidenceLevel: ConfidenceLevel
+  summary: string
+  factors: ScoreFactor[]
+  risks: RiskFactor[]
+  createdAt: string
+}
+
+export type ScoreHistoryItem = {
+  snapshotId: number
+  scenarioId: number
+  score: number
+  status: ScoreStatus
+  confidenceLevel: ConfidenceLevel
+  summary: string
+  createdAt: string
+}

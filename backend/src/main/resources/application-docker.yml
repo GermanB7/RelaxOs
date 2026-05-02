@@ -1,0 +1,12 @@
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/tranquiloos}
+    username: ${SPRING_DATASOURCE_USERNAME:tranquiloos}
+    password: ${SPRING_DATASOURCE_PASSWORD:tranquiloos_dev}
+
+app:
+  cors:
+    allowed-origins: ${FRONTEND_URL:http://localhost:5173},http://127.0.0.1:5173

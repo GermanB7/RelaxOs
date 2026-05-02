@@ -32,6 +32,35 @@ docker compose logs postgres
 
 Expected result: `postgres` is `healthy` and listening on `localhost:5432`.
 
+## Run Full Stack With Docker
+
+```bash
+docker compose up --build
+```
+
+Expected result:
+
+- PostgreSQL is healthy.
+- Backend runs at `http://localhost:8080`.
+- Frontend runs at `http://localhost:5173`.
+- Flyway applies all pending migrations.
+
+Reset the Docker database:
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+Main URLs:
+
+```text
+http://localhost:5173
+http://localhost:8080/api/v1/system/status
+http://localhost:8080/actuator/health
+http://localhost:8080/swagger-ui/index.html
+```
+
 ## Run Backend
 
 Linux/macOS:
@@ -123,6 +152,14 @@ PUT /api/v1/scenarios/{scenarioId}/expenses/{expenseId}
 DELETE /api/v1/scenarios/{scenarioId}/expenses/{expenseId}
 ```
 
+Score:
+
+```text
+POST /api/v1/scenarios/{scenarioId}/score/calculate
+GET /api/v1/scenarios/{scenarioId}/score/latest
+GET /api/v1/scenarios/{scenarioId}/score/history
+```
+
 ## Manual Sprint 1 Smoke
 
 ```bash
@@ -168,6 +205,16 @@ http://localhost:5173/settings
 ```
 
 Expected result: create a scenario, open its detail page, add an expense, and see the backend summary update.
+
+Score UI flow:
+
+```text
+1. Create a scenario.
+2. Add rent, utilities, internet, groceries, and food delivery expenses.
+3. Open the scenario detail page.
+4. Click Calculate Score.
+5. Confirm score, status, summary, factors, and risks appear.
+```
 
 ## Frontend Build
 
