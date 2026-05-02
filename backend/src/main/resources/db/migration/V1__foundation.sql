@@ -1,0 +1,2 @@
+-- Sprint 0 foundation migration.
+-- Domain schema starts in Sprint 1; no domain tables are created here.

@@ -1,0 +1,18 @@
+.env
+
+# Logs and local run helpers
+*.log
+*.pid
+
+# Backend
+backend/target/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
