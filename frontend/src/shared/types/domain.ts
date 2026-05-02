@@ -95,3 +95,61 @@ export type ScoreHistoryItem = {
   summary: string
   createdAt: string
 }
+
+export type RecommendationStatus =
+  | 'OPEN'
+  | 'ACCEPTED'
+  | 'POSTPONED'
+  | 'DISMISSED'
+  | 'EXPIRED'
+
+export type RecommendationSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+
+export type RecommendationType =
+  | 'FINANCIAL_RISK'
+  | 'EMERGENCY_FUND'
+  | 'RENT'
+  | 'MONTHLY_MARGIN'
+  | 'DEBT'
+  | 'FOOD_DELIVERY'
+  | 'DATA_QUALITY'
+  | 'HOUSEHOLD_SETUP'
+  | 'GENERAL'
+
+export type Recommendation = {
+  id: number
+  userId: number
+  scenarioId: number | null
+  scoreSnapshotId: number | null
+  type: RecommendationType
+  severity: RecommendationSeverity
+  priority: number
+  title: string
+  message: string
+  actionLabel: string | null
+  actionType: string | null
+  sourceRuleKey: string | null
+  status: RecommendationStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export type RecalculateRecommendationsResponse = {
+  scenarioId: number
+  generatedCount: number
+  recommendations: Recommendation[]
+}
+
+export type DecisionEvent = {
+  id: number
+  userId: number
+  scenarioId: number | null
+  recommendationId: number | null
+  decisionType: string
+  question: string
+  chosenOption: string | null
+  scoreBefore: number | null
+  scoreAfter: number | null
+  reason: string | null
+  createdAt: string
+}

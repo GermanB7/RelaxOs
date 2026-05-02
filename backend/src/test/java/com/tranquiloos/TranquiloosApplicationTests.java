@@ -6,6 +6,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.tranquiloos.expenses.infrastructure.ExpenseCategoryRepository;
 import com.tranquiloos.expenses.infrastructure.ScenarioExpenseRepository;
+import com.tranquiloos.recommendations.infrastructure.DecisionEventJpaRepository;
+import com.tranquiloos.recommendations.infrastructure.RecommendationJpaRepository;
 import com.tranquiloos.scenarios.infrastructure.ScenarioRepository;
 import com.tranquiloos.scoring.infrastructure.RiskFactorRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreFactorRepository;
@@ -43,6 +45,12 @@ class TranquiloosApplicationTests {
 
 	@MockitoBean
 	private RiskFactorRepository riskFactorRepository;
+
+	@MockitoBean
+	private RecommendationJpaRepository recommendationJpaRepository;
+
+	@MockitoBean
+	private DecisionEventJpaRepository decisionEventJpaRepository;
 
 	@Test
 	void contextLoads() {

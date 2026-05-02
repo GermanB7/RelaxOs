@@ -94,6 +94,10 @@ public class ScoreSnapshotEntity {
 		return summary;
 	}
 
+	public String getInputSnapshotJson() {
+		return inputSnapshotJson;
+	}
+
 	public void setSummary(String summary) {
 		this.summary = summary;
 	}

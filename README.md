@@ -1,6 +1,6 @@
 # TranquiloOS / IndependenceOS
 
-Sprint 1 builds on the MVP foundation with local profile, independence scenarios, scenario expenses, backend monthly summaries, and real frontend API integration.
+Sprint 3 adds a deterministic recommendation engine on top of the Docker dev stack, scenarios, expenses, and score snapshots.
 
 ## Requirements
 
@@ -122,7 +122,7 @@ Swagger UI:
 http://localhost:8080/swagger-ui/index.html
 ```
 
-## Sprint 1 Endpoints
+## Core Endpoints
 
 Profile:
 
@@ -160,7 +160,18 @@ GET /api/v1/scenarios/{scenarioId}/score/latest
 GET /api/v1/scenarios/{scenarioId}/score/history
 ```
 
-## Manual Sprint 1 Smoke
+Recommendations:
+
+```text
+GET /api/v1/recommendations
+POST /api/v1/recommendations/recalculate
+POST /api/v1/recommendations/{id}/accept
+POST /api/v1/recommendations/{id}/postpone
+POST /api/v1/recommendations/{id}/dismiss
+GET /api/v1/decisions
+```
+
+## Manual API Smoke
 
 ```bash
 curl http://localhost:8080/api/v1/expense-categories
@@ -173,6 +184,11 @@ curl -X POST http://localhost:8080/api/v1/scenarios/1/expenses \
   -H "Content-Type: application/json" \
   -d '{"categoryId":1,"name":"Rent","amount":1200000,"frequency":"MONTHLY","isEssential":true}'
 curl http://localhost:8080/api/v1/scenarios/1/summary
+curl -X POST http://localhost:8080/api/v1/scenarios/1/score/calculate
+curl -X POST http://localhost:8080/api/v1/recommendations/recalculate \
+  -H "Content-Type: application/json" \
+  -d '{"scenarioId":1}'
+curl "http://localhost:8080/api/v1/recommendations?scenarioId=1&status=OPEN"
 ```
 
 Expected summary shape:
@@ -214,6 +230,27 @@ Score UI flow:
 3. Open the scenario detail page.
 4. Click Calculate Score.
 5. Confirm score, status, summary, factors, and risks appear.
+```
+
+Recommendations UI flow:
+
+```text
+1. Open a scenario detail page.
+2. Click Calculate Score if no score exists.
+3. Click Recalculate Recommendations.
+4. Open http://localhost:5173/recommendations.
+5. Filter by OPEN, ACCEPTED, POSTPONED, or DISMISSED.
+6. Accept, postpone, or dismiss one recommendation.
+7. Confirm it disappears from OPEN and appears under the selected status.
+```
+
+Accept a recommendation by API after listing recommendations:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/recommendations/1/accept \
+  -H "Content-Type: application/json" \
+  -d '{"reason":"Makes sense for current scenario"}'
+curl "http://localhost:8080/api/v1/decisions?scenarioId=1"
 ```
 
 ## Frontend Build
