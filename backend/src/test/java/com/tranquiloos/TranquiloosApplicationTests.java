@@ -6,6 +6,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.tranquiloos.expenses.infrastructure.ExpenseCategoryRepository;
 import com.tranquiloos.expenses.infrastructure.ScenarioExpenseRepository;
+import com.tranquiloos.home.infrastructure.PurchaseCatalogItemJpaRepository;
+import com.tranquiloos.home.infrastructure.UserPurchaseItemJpaRepository;
+import com.tranquiloos.meals.infrastructure.MealCatalogItemJpaRepository;
+import com.tranquiloos.modes.infrastructure.AdaptiveModeJpaRepository;
+import com.tranquiloos.modes.infrastructure.ModeActivationJpaRepository;
 import com.tranquiloos.recommendations.infrastructure.DecisionEventJpaRepository;
 import com.tranquiloos.recommendations.infrastructure.RecommendationJpaRepository;
 import com.tranquiloos.scenarios.infrastructure.ScenarioRepository;
@@ -51,6 +56,21 @@ class TranquiloosApplicationTests {
 
 	@MockitoBean
 	private DecisionEventJpaRepository decisionEventJpaRepository;
+
+	@MockitoBean
+	private PurchaseCatalogItemJpaRepository purchaseCatalogItemJpaRepository;
+
+	@MockitoBean
+	private UserPurchaseItemJpaRepository userPurchaseItemJpaRepository;
+
+	@MockitoBean
+	private AdaptiveModeJpaRepository adaptiveModeJpaRepository;
+
+	@MockitoBean
+	private ModeActivationJpaRepository modeActivationJpaRepository;
+
+	@MockitoBean
+	private MealCatalogItemJpaRepository mealCatalogItemJpaRepository;
 
 	@Test
 	void contextLoads() {

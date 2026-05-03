@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import type { Recommendation } from '../../../shared/types/domain'
 import { RecommendationActions } from './RecommendationActions'
 import { RecommendationStatusBadge } from './RecommendationStatusBadge'
@@ -24,6 +25,8 @@ export function RecommendationCard({
   onPostpone,
   onDismiss,
 }: RecommendationCardProps) {
+  const actionTo = recommendationActionTo(recommendation)
+
   return (
     <article
       className={`rounded-lg border p-4 shadow-sm ${emphasisStyles[recommendation.severity]}`}
@@ -50,10 +53,18 @@ export function RecommendationCard({
       <p className="mt-2 text-sm leading-6 text-slate-700">
         {recommendation.message}
       </p>
-      {recommendation.actionLabel && (
+      {recommendation.actionLabel && !actionTo && (
         <p className="mt-3 text-sm font-semibold text-slate-900">
           {recommendation.actionLabel}
         </p>
+      )}
+      {recommendation.actionLabel && actionTo && (
+        <Link
+          to={actionTo}
+          className="mt-3 inline-flex text-sm font-semibold text-teal-700 hover:text-teal-900"
+        >
+          {recommendation.actionLabel}
+        </Link>
       )}
 
       <RecommendationActions
@@ -65,4 +76,28 @@ export function RecommendationCard({
       />
     </article>
   )
+}
+
+function recommendationActionTo(recommendation: Recommendation) {
+  switch (recommendation.actionType) {
+    case 'OPEN_HOME_ROADMAP':
+      return '/home-setup'
+    case 'OPEN_EXPENSES':
+      return recommendation.scenarioId
+        ? `/scenarios/${recommendation.scenarioId}`
+        : '/scenarios'
+    case 'OPEN_RECOMMENDATIONS':
+      return '/recommendations'
+    case 'OPEN_DASHBOARD':
+      return '/'
+    case 'OPEN_MEAL_PLANNER':
+      return '/meals'
+    case 'OPEN_SCENARIO':
+    case 'EDIT_SCENARIO':
+      return recommendation.scenarioId
+        ? `/scenarios/${recommendation.scenarioId}`
+        : '/scenarios'
+    default:
+      return null
+  }
 }

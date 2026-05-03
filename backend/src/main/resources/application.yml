@@ -31,3 +31,7 @@ app:
   version: ${APP_VERSION:0.0.1}
   cors:
     allowed-origins: ${FRONTEND_URL:http://localhost:5173},http://127.0.0.1:5173
+  security:
+    jwt:
+      secret: ${JWT_SECRET:change_me_dev_secret_at_least_32_chars}
+      expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}

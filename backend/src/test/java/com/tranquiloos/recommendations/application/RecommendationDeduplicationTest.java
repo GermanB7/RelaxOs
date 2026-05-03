@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranquiloos.expenses.api.ScenarioExpenseResponse;
 import com.tranquiloos.expenses.application.ExpenseService;
 import com.tranquiloos.expenses.domain.ExpenseFrequency;
+import com.tranquiloos.modes.application.ActiveModeProvider;
 import com.tranquiloos.recommendations.domain.RecommendationSeverity;
 import com.tranquiloos.recommendations.domain.RecommendationStatus;
 import com.tranquiloos.recommendations.infrastructure.RecommendationEntity;
@@ -29,6 +30,7 @@ import com.tranquiloos.scoring.infrastructure.RiskFactorRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotEntity;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotRepository;
 import com.tranquiloos.users.application.CurrentUserProvider;
+import com.tranquiloos.home.infrastructure.UserPurchaseItemJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -42,6 +44,8 @@ class RecommendationDeduplicationTest {
 		ScoreSnapshotRepository scoreSnapshotRepository = mock(ScoreSnapshotRepository.class);
 		RiskFactorRepository riskFactorRepository = mock(RiskFactorRepository.class);
 		RecommendationJpaRepository recommendationRepository = mock(RecommendationJpaRepository.class);
+		UserPurchaseItemJpaRepository userPurchaseRepository = mock(UserPurchaseItemJpaRepository.class);
+		ActiveModeProvider activeModeProvider = mock(ActiveModeProvider.class);
 		RecommendationEngineService service = new RecommendationEngineService(
 				currentUserProvider,
 				scenarioService,
@@ -50,7 +54,9 @@ class RecommendationDeduplicationTest {
 				riskFactorRepository,
 				recommendationRepository,
 				new RecommendationMapper(),
-				new ObjectMapper());
+				new ObjectMapper(),
+				userPurchaseRepository,
+				activeModeProvider);
 
 		ScenarioEntity scenario = scenario();
 		ScoreSnapshotEntity snapshot = snapshot();

@@ -153,3 +153,191 @@ export type DecisionEvent = {
   reason: string | null
   createdAt: string
 }
+
+export type ModeCode =
+  | 'WAR_MODE'
+  | 'STABLE_MODE'
+  | 'LIVE_LIFE_MODE'
+  | 'RECOVERY_MODE'
+  | 'AGGRESSIVE_SAVING_MODE'
+  | 'RESET_MODE'
+
+export type ModeActivationStatus = 'ACTIVE' | 'ENDED' | 'CANCELLED' | 'EXPIRED'
+export type ModeIntensityLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+export type SpendingPolicy = 'STRICT' | 'NORMAL' | 'FLEXIBLE' | 'MINIMAL'
+export type AlertPolicy = 'STRICT' | 'NORMAL' | 'SOFT' | 'MINIMAL'
+export type PurchasePolicy =
+  | 'FREEZE_NON_ESSENTIAL'
+  | 'PLAN_ONLY'
+  | 'NORMAL'
+  | 'FLEXIBLE'
+export type RoutinePolicy = 'STRICT' | 'NORMAL' | 'MINIMUM_VIABLE' | 'RESET'
+
+export type AdaptiveMode = {
+  id: number
+  code: ModeCode
+  name: string
+  description: string | null
+  objective: string | null
+  recommendedMinDays: number | null
+  recommendedMaxDays: number | null
+  intensityLevel: ModeIntensityLevel
+  spendingPolicy: SpendingPolicy
+  alertPolicy: AlertPolicy
+  purchasePolicy: PurchasePolicy
+  routinePolicy: RoutinePolicy
+  sortOrder: number
+}
+
+export type ModeActivation = {
+  activationId: number
+  modeCode: ModeCode
+  modeName: string
+  scenarioId: number | null
+  objective: string | null
+  intensityLevel: ModeIntensityLevel
+  spendingPolicy: SpendingPolicy
+  alertPolicy: AlertPolicy
+  purchasePolicy: PurchasePolicy
+  routinePolicy: RoutinePolicy
+  status: ModeActivationStatus
+  activatedAt: string
+  expiresAt: string | null
+  endedAt: string | null
+  notes: string | null
+}
+
+export type ActiveModeSummary = {
+  hasActiveMode: boolean
+  activationId: number | null
+  modeCode: ModeCode | null
+  modeName: string | null
+  objective: string | null
+  intensityLevel: ModeIntensityLevel | null
+  spendingPolicy: SpendingPolicy | null
+  alertPolicy: AlertPolicy | null
+  purchasePolicy: PurchasePolicy | null
+  routinePolicy: RoutinePolicy | null
+  scenarioId: number | null
+  activatedAt: string | null
+  expiresAt: string | null
+  daysRemaining: number | null
+  guidance: string[]
+}
+
+export type MealEffortLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+export type MealCravingLevel = 'SIMPLE' | 'COMFORT' | 'RICH' | 'HEAVY'
+export type MealBudgetLevel = 'LOW' | 'MEDIUM' | 'HIGH'
+
+export type MealCatalogItem = {
+  id: number
+  code: string
+  name: string
+  category: string
+  estimatedCostMin: number | null
+  estimatedCostMax: number | null
+  prepTimeMinutes: number
+  effortLevel: MealEffortLevel
+  cravingLevel: MealCravingLevel
+  budgetLevel: MealBudgetLevel
+  requiredEquipment: string | null
+  suggestedMode: ModeCode | null
+  description: string | null
+}
+
+export type MealSuggestion = {
+  id: number
+  name: string
+  estimatedCostMin: number | null
+  estimatedCostMax: number | null
+  prepTimeMinutes: number
+  effortLevel: MealEffortLevel
+  cravingLevel: MealCravingLevel
+  budgetLevel: MealBudgetLevel
+  requiredEquipment: string | null
+  fitScore: number
+  reason: string
+}
+
+export type MealSuggestionResponse = {
+  activeModeCode: ModeCode | null
+  suggestions: MealSuggestion[]
+}
+
+export type DashboardProfile = {
+  displayName: string | null
+  city: string | null
+  currency: string
+}
+
+export type DashboardScenarioSummary = {
+  id: number
+  name: string
+  monthlyIncome: number
+  totalMonthlyExpenses: number
+  estimatedMonthlyAvailable: number
+}
+
+export type DashboardScore = {
+  score: number
+  status: ScoreStatus
+  summary: string | null
+}
+
+export type DashboardRisk = {
+  severity: RiskSeverity
+  title: string
+}
+
+export type DashboardRecommendation = {
+  id: number
+  scenarioId: number | null
+  severity: RecommendationSeverity
+  title: string
+  actionLabel: string | null
+  actionType: string | null
+}
+
+export type DashboardActiveMode = {
+  hasActiveMode: boolean
+  modeCode: ModeCode | null
+  modeName: string | null
+  scenarioId: number | null
+  guidance: string[]
+}
+
+export type DashboardHomeSetup = {
+  hasRoadmap: boolean
+  tier1CompletionPercentage: number
+  nextBestPurchaseName: string | null
+  pendingItems: number
+}
+
+export type DashboardMealPlanner = {
+  suggestedCta: string
+}
+
+export type Dashboard = {
+  profile: DashboardProfile
+  primaryScenario: DashboardScenarioSummary | null
+  latestScore: DashboardScore | null
+  topRisks: DashboardRisk[]
+  topRecommendations: DashboardRecommendation[]
+  activeMode: DashboardActiveMode
+  homeSetup: DashboardHomeSetup
+  mealPlanner: DashboardMealPlanner
+}
+
+export type AuthUser = {
+  id: number
+  email: string
+  displayName: string | null
+  city: string | null
+  currency: string
+}
+
+export type AuthResponse = {
+  token: string
+  tokenType: 'Bearer'
+  user: AuthUser
+}

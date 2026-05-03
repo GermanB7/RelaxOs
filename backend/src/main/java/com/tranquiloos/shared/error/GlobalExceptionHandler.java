@@ -40,4 +40,10 @@ public class GlobalExceptionHandler {
 	ApiErrorResponse handleConflict(ResourceConflictException exception) {
 		return new ApiErrorResponse("CONFLICT", exception.getMessage(), List.of());
 	}
+
+	@ExceptionHandler(UnauthorizedException.class)
+	@ResponseStatus(HttpStatus.UNAUTHORIZED)
+	ApiErrorResponse handleUnauthorized(UnauthorizedException exception) {
+		return new ApiErrorResponse("UNAUTHORIZED", exception.getMessage(), List.of());
+	}
 }

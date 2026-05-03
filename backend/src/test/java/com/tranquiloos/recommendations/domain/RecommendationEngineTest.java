@@ -99,7 +99,15 @@ class RecommendationEngineTest {
 				debtBurden,
 				foodDeliveryBurden,
 				emergencyCoverageMonths,
-				new BigDecimal("0.16"));
+				new BigDecimal("0.16"),
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				0);
 	}
 
 	private List<ScenarioExpenseResponse> scenarioExpenses(int count) {

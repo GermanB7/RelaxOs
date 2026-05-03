@@ -19,6 +19,7 @@ import com.tranquiloos.recommendations.infrastructure.DecisionEventJpaRepository
 import com.tranquiloos.recommendations.infrastructure.RecommendationEntity;
 import com.tranquiloos.recommendations.infrastructure.RecommendationJpaRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotRepository;
+import com.tranquiloos.shared.error.ResourceNotFoundException;
 import com.tranquiloos.users.application.CurrentUserProvider;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -64,6 +65,24 @@ class RecommendationActionServiceTest {
 		verify(harness.decisionEventRepository).save(eventCaptor.capture());
 		assertThat(eventCaptor.getValue().getDecisionType()).isEqualTo("RECOMMENDATION_DISMISSED");
 		assertThat(eventCaptor.getValue().getChosenOption()).isEqualTo("DISMISSED");
+	}
+
+	@Test
+	void recommendationActionChecksOwnership() {
+		CurrentUserProvider currentUserProvider = mock(CurrentUserProvider.class);
+		RecommendationJpaRepository recommendationRepository = mock(RecommendationJpaRepository.class);
+		when(currentUserProvider.currentUserId()).thenReturn(2L);
+		when(recommendationRepository.findByIdAndUserId(20L, 2L)).thenReturn(Optional.empty());
+		RecommendationActionService service = new RecommendationActionService(
+				currentUserProvider,
+				recommendationRepository,
+				mock(DecisionEventJpaRepository.class),
+				mock(ScoreSnapshotRepository.class),
+				new RecommendationMapper(),
+				new ObjectMapper());
+
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.accept(20L, new RecommendationActionRequest("Nope")))
+				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
 	private TestHarness harness() {

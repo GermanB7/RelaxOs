@@ -1,6 +1,8 @@
 # TranquiloOS / IndependenceOS
 
-Sprint 3 adds a deterministic recommendation engine on top of the Docker dev stack, scenarios, expenses, and score snapshots.
+Sprint 4 adds Home Setup Roadmap: a personal purchase tracker for home essentials organized by priority tiers, with status management, custom items, and recommendation guidance.
+
+Previous sprints: Score snapshots, risks, deterministic recommendation engine, basic infrastructure.
 
 ## Requirements
 
@@ -171,6 +173,23 @@ POST /api/v1/recommendations/{id}/dismiss
 GET /api/v1/decisions
 ```
 
+Adaptive Modes:
+
+```text
+GET /api/v1/modes
+GET /api/v1/modes/active
+POST /api/v1/modes/activate
+POST /api/v1/modes/active/end
+GET /api/v1/modes/history
+```
+
+Meal Planner:
+
+```text
+GET /api/v1/meals/catalog
+POST /api/v1/meals/suggest
+```
+
 ## Manual API Smoke
 
 ```bash
@@ -244,6 +263,57 @@ Recommendations UI flow:
 7. Confirm it disappears from OPEN and appears under the selected status.
 ```
 
+Adaptive Modes UI flow:
+
+```text
+1. Open http://localhost:5173/modes.
+2. Activate WAR_MODE for 30 days.
+3. Confirm the active mode banner appears on Dashboard.
+4. Recalculate recommendations for a scenario.
+5. Confirm mode-based recommendations can appear.
+6. End the active mode.
+7. Confirm mode history and decision events update.
+```
+
+Adaptive Modes API smoke:
+
+```bash
+curl http://localhost:8080/api/v1/modes
+curl -X POST http://localhost:8080/api/v1/modes/activate \
+  -H "Content-Type: application/json" \
+  -d '{"modeCode":"WAR_MODE","scenarioId":1,"objective":"Save aggressively for independence","durationDays":30,"intensityLevel":"HIGH","notes":"Manual test"}'
+curl http://localhost:8080/api/v1/modes/active
+curl -X POST http://localhost:8080/api/v1/modes/active/end \
+  -H "Content-Type: application/json" \
+  -d '{"reason":"Manual test completed"}'
+curl http://localhost:8080/api/v1/modes/history
+curl http://localhost:8080/api/v1/decisions
+```
+
+## Sprint 6 - Meal Planner
+
+Manual UI flow:
+
+```text
+1. Open http://localhost:5173/meals.
+2. Select craving RICH.
+3. Use max time 25.
+4. Select effort LOW.
+5. Select budget MEDIUM.
+6. Keep AIR_FRYER checked.
+7. Click Suggest meals.
+8. Confirm 3-5 suggestions, fitScore, and reason appear.
+```
+
+Manual API smoke:
+
+```bash
+curl http://localhost:8080/api/v1/meals/catalog
+curl -X POST http://localhost:8080/api/v1/meals/suggest \
+  -H "Content-Type: application/json" \
+  -d '{"cravingLevel":"RICH","maxPrepTimeMinutes":25,"effortLevel":"LOW","budgetLevel":"MEDIUM","availableEquipment":["AIR_FRYER","RICE_COOKER"]}'
+```
+
 Accept a recommendation by API after listing recommendations:
 
 ```bash
@@ -253,6 +323,139 @@ curl -X POST http://localhost:8080/api/v1/recommendations/1/accept \
 curl "http://localhost:8080/api/v1/decisions?scenarioId=1"
 ```
 
+## Sprint 4 — Home Setup Roadmap
+
+Home Setup Roadmap allows users to plan their home purchases in tiers of necessity, track status, and receive guidance.
+
+### Endpoints
+
+```text
+GET /api/v1/home/catalog
+POST /api/v1/home/roadmap/initialize
+GET /api/v1/home/roadmap
+GET /api/v1/home/roadmap/summary
+POST /api/v1/home/roadmap/items
+PUT /api/v1/home/roadmap/items/{id}
+PATCH /api/v1/home/roadmap/items/{id}/status
+DELETE /api/v1/home/roadmap/items/{id}
+```
+
+### Manual QA Flow
+
+1. **Ensure full stack is running:**
+   ```bash
+   docker compose down -v
+   docker compose up --build
+   ```
+
+2. **Create a scenario:**
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/scenarios \
+     -H "Content-Type: application/json" \
+     -d '{"name":"Home Setup Test","monthlyIncome":3000000,"emergencyFundCurrent":500000}'
+   ```
+
+3. **Calculate score:**
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/scenarios/1/score/calculate
+   ```
+
+4. **Initialize home roadmap:**
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/home/roadmap/initialize \
+     -H "Content-Type: application/json" \
+     -d '{"scenarioId":1}'
+   ```
+
+5. **View roadmap:**
+   ```bash
+   curl http://localhost:8080/api/v1/home/roadmap?scenarioId=1
+   ```
+
+6. **Mark item as bought:**
+   ```bash
+   curl -X PATCH http://localhost:8080/api/v1/home/roadmap/items/1/status \
+     -H "Content-Type: application/json" \
+     -d '{"status":"BOUGHT","actualPrice":850000,"reason":"Purchased at discount"}'
+   ```
+
+7. **Add custom item:**
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/home/roadmap/items \
+     -H "Content-Type: application/json" \
+     -d '{"scenarioId":1,"name":"Cortina blackout","category":"Dormir","tier":"TIER_2","estimatedPrice":220000}'
+   ```
+
+8. **View summary:**
+   ```bash
+   curl http://localhost:8080/api/v1/home/roadmap/summary?scenarioId=1
+   ```
+
+9. **Recalculate recommendations:**
+   ```bash
+   curl -X POST http://localhost:8080/api/v1/recommendations/recalculate \
+     -H "Content-Type: application/json" \
+     -d '{"scenarioId":1}'
+   ```
+
+10. **Frontend workflow:**
+    - Open http://localhost:5173/home-setup
+    - Click "Inicializar desde catálogo"
+    - View summary and items by tier
+    - Mark 2–3 items as BOUGHT
+    - Add a custom item
+    - Filter by status/tier/category
+    - Go to /recommendations and confirm home-setup recommendations
+
+For complete Sprint 4 documentation, see [docs/sprint-4.md](docs/sprint-4.md).
+
+## Sprint 7 - Dashboard Integration
+
+The Dashboard is now the MVP command center. It aggregates existing backend data and does not calculate score or recommendations automatically.
+
+### Endpoint
+
+```text
+GET /api/v1/dashboard
+```
+
+### Manual MVP Flow
+
+1. Start the full stack:
+   ```bash
+   docker compose down -v
+   docker compose up --build
+   ```
+
+2. Open the frontend:
+   ```text
+   http://localhost:5173
+   ```
+
+3. Create a scenario and add expenses from `/scenarios`.
+
+4. Calculate score from the scenario detail page or Dashboard quick action.
+
+5. Recalculate recommendations from the scenario detail page, `/recommendations`, or Dashboard quick action.
+
+6. Initialize Home Setup from `/home-setup`.
+
+7. Activate an adaptive mode from `/modes`.
+
+8. Request meals from `/meals`.
+
+9. Return to `/` and confirm Dashboard shows:
+   - Profile
+   - Primary scenario
+   - Latest score
+   - Top risks
+   - Top 3 open recommendations
+   - Active mode
+   - Home setup summary
+   - Meal planner CTA
+
+For complete Sprint 7 documentation, see [docs/sprint-7.md](docs/sprint-7.md).
+
 ## Frontend Build
 
 ```bash
@@ -261,6 +464,109 @@ npm run build
 ```
 
 Expected result: TypeScript and Vite finish successfully and create `frontend/dist`.
+
+## Private Prod-Like Deploy
+
+Sprint 8 adds a private production-like stack for real personal use outside local dev.
+
+```bash
+cp .env.prod.example .env.prod
+```
+
+Edit `.env.prod` and replace `change_me_strong_password` with a strong password. Then run:
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+```
+
+Open:
+
+```text
+http://localhost
+http://localhost/swagger-ui/index.html
+```
+
+Health:
+
+```bash
+./scripts/check-health.sh
+```
+
+Backup:
+
+```bash
+./scripts/backup-db.sh
+```
+
+Restore:
+
+```bash
+./scripts/restore-db.sh backups/file.sql
+```
+
+Recovery summary:
+
+1. Stop backend/frontend.
+2. Keep or start Postgres.
+3. Restore the selected backup.
+4. Start backend/frontend.
+5. Run health checks.
+6. Open Dashboard.
+
+Detailed docs:
+
+- [Private deploy](docs/deploy-private.md)
+- [Backup and restore](docs/backup-restore.md)
+
+## Sprint 9 - Auth
+
+Auth is now required for private MVP data endpoints. Register the first private user from the UI or API.
+
+### Endpoints
+
+```text
+POST /api/v1/auth/register
+POST /api/v1/auth/login
+GET /api/v1/auth/me
+```
+
+### Environment
+
+```text
+JWT_SECRET=change_me_dev_secret_at_least_32_chars
+JWT_EXPIRATION_MINUTES=1440
+```
+
+For production-like deploy, change `JWT_SECRET` in `.env.prod` before starting the stack.
+
+### Manual Flow
+
+1. Open `http://localhost:5173/register`.
+2. Create a user.
+3. Create a scenario.
+4. Add expenses.
+5. Calculate score.
+6. Logout.
+7. Login again.
+8. Confirm data is still visible.
+9. Confirm protected endpoints without token return `401`.
+
+API example:
+
+```bash
+curl -X POST http://localhost:8080/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"user@example.com","password":"strong-password","displayName":"Juan","city":"Bogota","currency":"COP"}'
+```
+
+Use the returned token:
+
+```bash
+curl http://localhost:8080/api/v1/dashboard \
+  -H "Authorization: Bearer TOKEN_HERE"
+```
+
+For full Sprint 9 notes, see [docs/sprint-9.md](docs/sprint-9.md).
 
 ## Reset Local Database
 

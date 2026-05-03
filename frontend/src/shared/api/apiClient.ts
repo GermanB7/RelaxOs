@@ -1,3 +1,5 @@
+import { clearAuthToken, getAuthToken } from '../../features/auth/api/authToken'
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080/api/v1'
 
@@ -20,15 +22,24 @@ export async function apiClient<TResponse>({
   headers,
   ...init
 }: ApiClientOptions): Promise<TResponse> {
+  const token = getAuthToken()
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
   })
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthToken()
+      window.dispatchEvent(new CustomEvent('tranquiloos:unauthorized'))
+      if (!window.location.pathname.startsWith('/login')) {
+        window.location.assign('/login')
+      }
+    }
     throw new ApiClientError(
       `Request failed with status ${response.status}`,
       response.status,

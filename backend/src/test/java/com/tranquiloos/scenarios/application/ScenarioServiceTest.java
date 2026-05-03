@@ -15,6 +15,7 @@ import com.tranquiloos.scenarios.api.ScenarioSummaryResponse;
 import com.tranquiloos.scenarios.domain.ScenarioStatus;
 import com.tranquiloos.scenarios.infrastructure.ScenarioEntity;
 import com.tranquiloos.scenarios.infrastructure.ScenarioRepository;
+import com.tranquiloos.shared.error.ResourceNotFoundException;
 import com.tranquiloos.users.application.CurrentUserProvider;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -79,5 +80,14 @@ class ScenarioServiceTest {
 		assertThat(summary.totalMonthlyExpenses()).isEqualByComparingTo(new BigDecimal("1800000.00"));
 		assertThat(summary.estimatedMonthlyAvailable()).isEqualByComparingTo(new BigDecimal("1200000.00"));
 		assertThat(summary.expenseCount()).isEqualTo(5L);
+	}
+
+	@Test
+	void doesNotAccessScenarioOwnedByAnotherUser() {
+		when(currentUserProvider.currentUserId()).thenReturn(1L);
+		when(scenarioRepository.findByIdAndUserId(99L, 1L)).thenReturn(Optional.empty());
+
+		org.assertj.core.api.Assertions.assertThatThrownBy(() -> scenarioService.getScenario(99L))
+				.isInstanceOf(ResourceNotFoundException.class);
 	}
 }

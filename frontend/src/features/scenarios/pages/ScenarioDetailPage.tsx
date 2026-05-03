@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { PageHeader } from '../../../shared/components/PageHeader'
+import { ActiveModeBanner } from '../../modes/components/ActiveModeBanner'
 import { RecommendationsList } from '../../recommendations/components/RecommendationsList'
 import { useRecommendations } from '../../recommendations/hooks/useRecommendations'
 import { RiskFactorsList } from '../../scoring/components/RiskFactorsList'
@@ -66,6 +67,10 @@ export function ScenarioDetailPage() {
         title={scenarioQuery.data.name}
         description="Edit the scenario foundation, add expenses, and read the monthly summary returned by the backend."
       />
+
+      <section className="mt-6">
+        <ActiveModeBanner scenarioId={parsedScenarioId} compact />
+      </section>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <section>

@@ -2,6 +2,7 @@ package com.tranquiloos.recommendations.application;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -9,19 +10,32 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tranquiloos.expenses.api.ScenarioExpenseResponse;
 import com.tranquiloos.expenses.application.ExpenseService;
+import com.tranquiloos.home.infrastructure.UserPurchaseItemJpaRepository;
+import com.tranquiloos.modes.application.ActiveModeProvider;
+import com.tranquiloos.modes.domain.ModePolicySnapshot;
 import com.tranquiloos.recommendations.api.RecalculateRecommendationsResponse;
 import com.tranquiloos.recommendations.api.RecommendationResponse;
 import com.tranquiloos.recommendations.domain.RecommendationCandidate;
 import com.tranquiloos.recommendations.domain.RecommendationContext;
 import com.tranquiloos.recommendations.domain.RecommendationRule;
+import com.tranquiloos.recommendations.domain.RecommendationSeverity;
 import com.tranquiloos.recommendations.domain.RecommendationStatus;
+import com.tranquiloos.recommendations.domain.rules.AggressiveSavingPurchaseFreezeRule;
+import com.tranquiloos.recommendations.domain.rules.BuyTier1HomeSetupRule;
 import com.tranquiloos.recommendations.domain.rules.DataQualityRecommendationRule;
 import com.tranquiloos.recommendations.domain.rules.FoodDeliveryPressureRecommendationRule;
+import com.tranquiloos.recommendations.domain.rules.FoodDeliveryToMealPlannerRule;
 import com.tranquiloos.recommendations.domain.rules.HighDebtBurdenRecommendationRule;
 import com.tranquiloos.recommendations.domain.rules.HighFixedBurdenRecommendationRule;
 import com.tranquiloos.recommendations.domain.rules.HighRentBurdenRecommendationRule;
+import com.tranquiloos.recommendations.domain.rules.LiveLifeBoundariesRule;
 import com.tranquiloos.recommendations.domain.rules.LowEmergencyFundRecommendationRule;
 import com.tranquiloos.recommendations.domain.rules.NegativeMarginRecommendationRule;
+import com.tranquiloos.recommendations.domain.rules.PostponeNonEssentialPurchasesRule;
+import com.tranquiloos.recommendations.domain.rules.RecoveryModeSoftenAlertsRule;
+import com.tranquiloos.recommendations.domain.rules.ResetModeReviewRule;
+import com.tranquiloos.recommendations.domain.rules.WarModeSpendingFocusRule;
+import com.tranquiloos.recommendations.domain.rules.WarModeLowCostMealsRule;
 import com.tranquiloos.recommendations.infrastructure.RecommendationEntity;
 import com.tranquiloos.recommendations.infrastructure.RecommendationJpaRepository;
 import com.tranquiloos.scenarios.application.ScenarioService;
@@ -46,14 +60,9 @@ public class RecommendationEngineService {
 	private final RecommendationJpaRepository recommendationRepository;
 	private final RecommendationMapper mapper;
 	private final ObjectMapper objectMapper;
-	private final List<RecommendationRule> rules = List.of(
-			new NegativeMarginRecommendationRule(),
-			new LowEmergencyFundRecommendationRule(),
-			new HighRentBurdenRecommendationRule(),
-			new HighFixedBurdenRecommendationRule(),
-			new HighDebtBurdenRecommendationRule(),
-			new FoodDeliveryPressureRecommendationRule(),
-			new DataQualityRecommendationRule());
+	private final UserPurchaseItemJpaRepository userPurchaseRepository;
+	private final ActiveModeProvider activeModeProvider;
+	private final List<RecommendationRule> rules;
 
 	public RecommendationEngineService(
 			CurrentUserProvider currentUserProvider,
@@ -63,7 +72,9 @@ public class RecommendationEngineService {
 			RiskFactorRepository riskFactorRepository,
 			RecommendationJpaRepository recommendationRepository,
 			RecommendationMapper mapper,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper,
+			UserPurchaseItemJpaRepository userPurchaseRepository,
+			ActiveModeProvider activeModeProvider) {
 		this.currentUserProvider = currentUserProvider;
 		this.scenarioService = scenarioService;
 		this.expenseService = expenseService;
@@ -72,6 +83,25 @@ public class RecommendationEngineService {
 		this.recommendationRepository = recommendationRepository;
 		this.mapper = mapper;
 		this.objectMapper = objectMapper;
+		this.userPurchaseRepository = userPurchaseRepository;
+		this.activeModeProvider = activeModeProvider;
+		this.rules = new ArrayList<>();
+		this.rules.add(new NegativeMarginRecommendationRule());
+		this.rules.add(new LowEmergencyFundRecommendationRule());
+		this.rules.add(new HighRentBurdenRecommendationRule());
+		this.rules.add(new HighFixedBurdenRecommendationRule());
+		this.rules.add(new HighDebtBurdenRecommendationRule());
+		this.rules.add(new FoodDeliveryPressureRecommendationRule());
+		this.rules.add(new FoodDeliveryToMealPlannerRule());
+		this.rules.add(new BuyTier1HomeSetupRule(userPurchaseRepository));
+		this.rules.add(new PostponeNonEssentialPurchasesRule(userPurchaseRepository));
+		this.rules.add(new WarModeSpendingFocusRule());
+		this.rules.add(new WarModeLowCostMealsRule());
+		this.rules.add(new RecoveryModeSoftenAlertsRule());
+		this.rules.add(new AggressiveSavingPurchaseFreezeRule(userPurchaseRepository));
+		this.rules.add(new LiveLifeBoundariesRule());
+		this.rules.add(new ResetModeReviewRule());
+		this.rules.add(new DataQualityRecommendationRule());
 	}
 
 	@Transactional
@@ -107,6 +137,12 @@ public class RecommendationEngineService {
 		BigDecimal foodDeliveryMonthly = sumByCategory(expenses, "food_delivery");
 		BigDecimal essentialMonthly = expenses.stream().filter(ScenarioExpenseResponse::isEssential).map(ScenarioExpenseResponse::monthlyEquivalent).reduce(BigDecimal.ZERO, BigDecimal::add);
 		List<String> riskKeys = riskFactorRepository.findByScoreSnapshotIdOrderByIdAsc(snapshot.getId()).stream().map(risk -> risk.getRiskKey()).toList();
+		ModePolicySnapshot activeMode = activeModeProvider.currentPolicy().orElse(null);
+		long highOpenRecommendationCount = recommendationRepository
+				.findByUserIdAndScenarioIdAndStatusOrderByPriorityAscSeverityDescCreatedAtDesc(userId, scenario.getId(), RecommendationStatus.OPEN)
+				.stream()
+				.filter(recommendation -> recommendation.getSeverity() == RecommendationSeverity.CRITICAL || recommendation.getSeverity() == RecommendationSeverity.HIGH)
+				.count();
 
 		return new RecommendationContext(
 				userId,
@@ -129,7 +165,15 @@ public class RecommendationEngineService {
 				ratio(debtMonthly, scenario.getMonthlyIncome()),
 				ratio(foodDeliveryMonthly, scenario.getMonthlyIncome()),
 				ratio(scenario.getEmergencyFundCurrent(), totalMonthlyExpenses),
-				ratio(available, scenario.getMonthlyIncome()));
+				ratio(available, scenario.getMonthlyIncome()),
+				activeMode == null ? null : activeMode.modeCode(),
+				activeMode == null ? null : activeMode.modeName(),
+				activeMode == null ? null : activeMode.spendingPolicy(),
+				activeMode == null ? null : activeMode.alertPolicy(),
+				activeMode == null ? null : activeMode.purchasePolicy(),
+				activeMode == null ? null : activeMode.routinePolicy(),
+				activeMode == null ? null : activeMode.intensityLevel(),
+				highOpenRecommendationCount);
 	}
 
 	private RecommendationEntity upsertRecommendation(RecommendationContext context, RecommendationCandidate candidate) {

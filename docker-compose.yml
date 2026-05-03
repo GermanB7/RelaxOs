@@ -27,6 +27,8 @@ services:
       SPRING_DATASOURCE_USERNAME: tranquiloos
       SPRING_DATASOURCE_PASSWORD: tranquiloos_dev
       FRONTEND_URL: http://localhost:5173
+      JWT_SECRET: ${JWT_SECRET:-change_me_dev_secret_at_least_32_chars}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-1440}
     ports:
       - "8080:8080"
     depends_on:
