@@ -9,6 +9,16 @@ spring:
   flyway:
     enabled: true
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
 server:
   error:
     include-message: never
@@ -18,4 +28,8 @@ server:
 
 app:
   cors:
-    allowed-origins: ${FRONTEND_URL:http://localhost}
+    allowed-origins: ${FRONTEND_URL}
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration-minutes: ${JWT_EXPIRATION_MINUTES:1440}

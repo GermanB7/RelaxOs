@@ -64,7 +64,7 @@ Screenshots are intentionally left as portfolio placeholders until final capture
 - Request meal suggestions.
 - Return to the dashboard and show the system-level next action.
 
-## Local Setup
+## Development
 
 Requirements:
 
@@ -102,18 +102,37 @@ npm run lint
 npm run build
 ```
 
-## Private Deploy
+## Production-Like Local
 
-Create or update `.env.prod` from `.env.prod.example`, then run:
+Production-like local mode uses the same three-service shape expected on a future private server: PostgreSQL, Spring Boot, and Nginx serving the Vite build.
+
+Create a local prod env file:
+
+```bash
+cp .env.prod.example .env.prod
+```
+
+Edit `.env.prod` before running it:
+
+- Replace `POSTGRES_PASSWORD` with a strong password.
+- Make `SPRING_DATASOURCE_PASSWORD` match `POSTGRES_PASSWORD`.
+- Replace `JWT_SECRET` with a long random value of at least 32 characters.
+- Set `FRONTEND_URL` to the browser origin allowed by CORS.
+- Set `VITE_API_BASE_URL` to the public API path used by the frontend.
+
+Start the stack:
 
 ```bash
 docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
 ```
 
-Health check:
+For prod-like local behind Nginx:
 
 ```bash
-./scripts/check-health.sh
+FRONTEND_HEALTH_URL=http://localhost \
+BACKEND_HEALTH_URL=http://localhost/actuator/health \
+SYSTEM_STATUS_URL=http://localhost/api/v1/system/status \
+  ./scripts/check-health.sh
 ```
 
 On Windows without a Unix shell, use the equivalent HTTP checks:
@@ -123,6 +142,33 @@ Invoke-RestMethod http://localhost/actuator/health
 Invoke-RestMethod http://localhost/api/v1/system/status
 Invoke-WebRequest http://localhost/
 ```
+
+## CI
+
+GitHub Actions is prepared in `.github/workflows/ci.yml`.
+
+It runs on pushes to `main` and pull requests targeting `main`:
+
+- Backend: Java 21 setup plus `./mvnw test`.
+- Frontend: Node LTS setup, `npm ci`, and `npm run build`.
+- Docker validation: builds backend and frontend images.
+
+The workflow intentionally does not deploy, push Docker images, or require server secrets yet.
+
+## Private Deploy
+
+Future VPS deployment is documented in [docs/deploy-private.md](docs/deploy-private.md).
+
+The prepared script is:
+
+```bash
+DEPLOY_HOST=your-host \
+DEPLOY_USER=your-user \
+DEPLOY_PATH=/path/to/tranquiloos \
+  ./scripts/deploy.sh
+```
+
+Do not run it until a VPS exists, SSH access is configured, and `.env.prod` has been created manually on the server.
 
 ## Backup & Restore
 
@@ -140,6 +186,8 @@ Restore a backup:
 
 Backup and restore are documented in [docs/backup-restore.md](docs/backup-restore.md).
 
+The backup script keeps the latest 7 SQL dumps by default. Override with `KEEP_BACKUPS=<N>` if needed.
+
 ## Tech Decisions
 
 - Modular monolith over microservices: the product is still one cohesive decision system, so distributed services would add operational cost without product value.
@@ -156,4 +204,3 @@ Backup and restore are documented in [docs/backup-restore.md](docs/backup-restor
 - Add focused integration tests for the browser flow.
 - Add richer seed import validation and admin previews.
 - Add optional analytics around decision outcomes.
-

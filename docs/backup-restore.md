@@ -1,8 +1,8 @@
 # Backup And Restore
 
-Sprint 8 provides simple local filesystem backups with `pg_dump`.
+Backups are only useful if restore has been tested. Treat an untested backup as a hopeful file, not a recovery plan.
 
-## Backup
+## Manual Backup
 
 Run:
 
@@ -16,9 +16,20 @@ Expected output:
 backups/tranquiloos_YYYYMMDD_HHMMSS.sql
 ```
 
-The script fails with a non-zero exit code if `pg_dump` fails or the generated file is empty.
+The script:
 
-## Restore
+- Creates `backups/` if missing.
+- Runs `pg_dump` against the `postgres` service in `docker-compose.prod.yml`.
+- Fails with a non-zero exit code if `pg_dump` fails or the output file is empty.
+- Keeps the latest 7 backups by default.
+
+Override retention:
+
+```bash
+KEEP_BACKUPS=14 ./scripts/backup-db.sh
+```
+
+## Manual Restore
 
 Run:
 
@@ -34,7 +45,9 @@ RESTORE
 
 It then drops and recreates the database and restores the SQL backup.
 
-## Suggested Cron
+Use restore only when you intentionally want to replace the current database contents.
+
+## Future Cron
 
 On a private server:
 
@@ -66,7 +79,7 @@ On a private server:
 
 5. Verify health:
    ```bash
-   ./scripts/check-health.sh
+   FRONTEND_HEALTH_URL=http://localhost BACKEND_HEALTH_URL=http://localhost/actuator/health SYSTEM_STATUS_URL=http://localhost/api/v1/system/status ./scripts/check-health.sh
    ```
 
 6. Open Dashboard and confirm key data is present.

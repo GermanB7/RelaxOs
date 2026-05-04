@@ -5,6 +5,7 @@ ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.prod}"
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.prod.yml}"
 BACKUP_DIR="${BACKUP_DIR:-$ROOT_DIR/backups}"
+KEEP_BACKUPS="${KEEP_BACKUPS:-7}"
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "Missing env file: $ENV_FILE"
@@ -27,6 +28,14 @@ if [ ! -s "$BACKUP_FILE" ]; then
   echo "Backup failed or produced an empty file."
   rm -f "$BACKUP_FILE"
   exit 1
+fi
+
+if [ "$KEEP_BACKUPS" -gt 0 ] 2>/dev/null; then
+  ls -1t "$BACKUP_DIR"/tranquiloos_*.sql 2>/dev/null \
+    | awk "NR>$KEEP_BACKUPS" \
+    | while IFS= read -r old_backup; do
+        rm -f "$old_backup"
+      done
 fi
 
 echo "Backup completed: $BACKUP_FILE"

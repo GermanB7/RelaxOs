@@ -1,18 +1,20 @@
 #!/usr/bin/env sh
 set -eu
 
-APP_ORIGIN="${APP_ORIGIN:-http://localhost}"
-API_ORIGIN="${API_ORIGIN:-$APP_ORIGIN}"
+FRONTEND_HEALTH_URL="${FRONTEND_HEALTH_URL:-http://localhost}"
+BACKEND_HEALTH_URL="${BACKEND_HEALTH_URL:-http://localhost:8080/actuator/health}"
+SYSTEM_STATUS_URL="${SYSTEM_STATUS_URL:-http://localhost:8080/api/v1/system/status}"
 
 check_url() {
   NAME="$1"
   URL="$2"
-  echo "Checking $NAME: $URL"
+  printf 'Checking %s: %s ... ' "$NAME" "$URL"
   curl -fsS "$URL" >/dev/null
+  echo "OK"
 }
 
-check_url "frontend" "$APP_ORIGIN/"
-check_url "backend health" "$API_ORIGIN/actuator/health"
-check_url "system status" "$API_ORIGIN/api/v1/system/status"
+check_url "frontend" "$FRONTEND_HEALTH_URL"
+check_url "backend health" "$BACKEND_HEALTH_URL"
+check_url "system status" "$SYSTEM_STATUS_URL"
 
 echo "All health checks passed."
