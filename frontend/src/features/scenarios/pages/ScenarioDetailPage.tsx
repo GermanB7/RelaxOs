@@ -7,6 +7,7 @@ import { RiskFactorsList } from '../../scoring/components/RiskFactorsList'
 import { ScoreCard } from '../../scoring/components/ScoreCard'
 import { ScoreFactorsList } from '../../scoring/components/ScoreFactorsList'
 import { useScenarioScore } from '../../scoring/hooks/useScenarioScore'
+import { TransportPanel } from '../../transport/components/TransportPanel'
 import { ExpenseForm } from '../components/ExpenseForm'
 import { ExpenseList } from '../components/ExpenseList'
 import { ScenarioForm } from '../components/ScenarioForm'
@@ -254,6 +255,8 @@ export function ScenarioDetailPage() {
           />
         )}
       </section>
+
+      <TransportPanel scenarioId={parsedScenarioId} />
     </>
   )
 }

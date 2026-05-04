@@ -114,6 +114,7 @@ export type RecommendationType =
   | 'FOOD_DELIVERY'
   | 'DATA_QUALITY'
   | 'HOUSEHOLD_SETUP'
+  | 'TRANSPORT'
   | 'GENERAL'
 
 export type Recommendation = {
@@ -151,6 +152,91 @@ export type DecisionEvent = {
   scoreBefore: number | null
   scoreAfter: number | null
   reason: string | null
+  contextJson: string | null
+  createdAt: string
+}
+
+export type ScenarioComparisonItem = {
+  scenarioId: number
+  name: string
+  monthlyIncome: number
+  monthlyExpenses: number
+  estimatedSavings: number
+  savingsRate: number
+  rentBurden: number
+  fixedBurden: number
+  emergencyCoverage: number
+  latestScore: number | null
+  scoreStatus: ScoreStatus | null
+  scoreMissing: boolean
+  scoreStale: boolean
+  mainRiskSeverity: RiskSeverity | null
+  mainRisk: string | null
+  mainRecommendation: string | null
+  decisionScore: number
+}
+
+export type ScenarioComparison = {
+  comparedScenarios: ScenarioComparisonItem[]
+  recommendedScenarioId: number
+  recommendationReason: string
+}
+
+export type TransportOptionType =
+  | 'PUBLIC_TRANSPORT'
+  | 'UBER_DIDI'
+  | 'MOTORCYCLE'
+  | 'CAR'
+  | 'BICYCLE'
+  | 'WALKING'
+  | 'MIXED'
+
+export type TransportRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+
+export type TransportOption = {
+  id: number
+  scenarioId: number
+  optionType: TransportOptionType
+  monthlyCost: number
+  totalMonthlyCost: number
+  tripsPerWeek: number
+  averageTimeMinutes: number
+  comfortScore: number
+  safetyScore: number
+  flexibilityScore: number
+  parkingCost: number | null
+  maintenanceCost: number | null
+  insuranceCost: number | null
+  fuelCost: number | null
+  upfrontCost: number | null
+  hasParking: boolean | null
+  hasLicense: boolean | null
+  notes: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type EvaluatedTransportOption = {
+  optionId: number
+  optionType: TransportOptionType
+  totalMonthlyCost: number
+  transportBurden: number
+  fitScore: number
+  riskLevel: TransportRiskLevel
+  explanation: string
+}
+
+export type TransportEvaluation = {
+  id: number
+  scenarioId: number
+  recommendedCurrentOption: TransportOptionType | null
+  futureViableOption: TransportOptionType | null
+  transportBurden: number
+  fitScore: number
+  riskLevel: TransportRiskLevel
+  explanation: string
+  conditionsToSwitch: string | null
+  evaluatedOptions: EvaluatedTransportOption[]
   createdAt: string
 }
 
@@ -326,6 +412,143 @@ export type Dashboard = {
   activeMode: DashboardActiveMode
   homeSetup: DashboardHomeSetup
   mealPlanner: DashboardMealPlanner
+}
+
+export type DashboardSummary = {
+  activeScenario: { id: number; name: string } | null
+  latestScore: number | null
+  scoreStatus: ScoreStatus | null
+  activeMode: DashboardActiveMode
+  financialSnapshot: {
+    monthlyIncome: number
+    monthlyExpenses: number
+    estimatedSavings: number
+    savingsRate: number
+    rentBurden: number
+    fixedBurden: number
+    transportBurden: number
+    emergencyCoverage: number
+  }
+  mainRisk: { severity: RiskSeverity; title: string; explanation: string | null } | null
+  topRecommendations: Array<{
+    id: number
+    scenarioId: number | null
+    severity: RecommendationSeverity
+    title: string
+    message: string
+    actionLabel: string | null
+    actionType: string | null
+  }>
+  scenarioComparisonSummary: {
+    available: boolean
+    scenarioCount: number
+    lastRecommendedScenarioId: number | null
+    lastReason: string | null
+  }
+  transportSummary: {
+    available: boolean
+    recommendedCurrentOption: TransportOptionType | null
+    futureViableOption: TransportOptionType | null
+    transportBurden: number
+    fitScore: number | null
+    riskLevel: TransportRiskLevel | null
+    explanation: string | null
+    conditionsToSwitch: string | null
+  }
+  homePriority: {
+    hasRoadmap: boolean
+    nextBestPurchaseName: string | null
+    tier1CompletionPercentage: number
+    pendingItems: number
+  }
+  mealSuggestion: { title: string; reason: string }
+  recentDecisionEvents: Array<{
+    id: number
+    scenarioId: number | null
+    decisionType: string
+    question: string
+    chosenOption: string | null
+    reason: string | null
+    createdAt: string
+  }>
+  quickActions: Array<{ key: string; label: string; path: string; priority: string }>
+}
+
+export type AdminOverview = {
+  expenseCategories: number
+  purchaseItems: number
+  mealItems: number
+  modes: number
+  settings: number
+  auditEvents: number
+}
+
+export type AdminExpenseCategory = ExpenseCategory & {
+  parentId: number | null
+  active: boolean
+  sortOrder: number
+}
+
+export type AdminPurchaseItem = {
+  id: number
+  code: string
+  name: string
+  category: string
+  tier: string
+  estimatedMinPrice: number | null
+  estimatedMaxPrice: number | null
+  impactLevel: string
+  urgencyLevel: string
+  recommendedMoment: string | null
+  earlyPurchaseRisk: string | null
+  dependencies: string | null
+  rationale: string | null
+  active: boolean
+  sortOrder: number
+}
+
+export type AdminMealItem = MealCatalogItem & {
+  active: boolean
+  sortOrder: number
+}
+
+export type AdminMode = AdaptiveMode & {
+  active: boolean
+}
+
+export type AdminRecommendationCopy = {
+  ruleKey: string
+  title: string
+  message: string
+  actionLabel: string | null
+  severity: string | null
+  active: boolean
+}
+
+export type AdminSetting = {
+  key: string
+  value: string
+  valueType: string
+  description: string | null
+  active: boolean
+}
+
+export type AdminAuditLog = {
+  id: number
+  adminUserId: number | null
+  actionType: string
+  entityType: string
+  entityId: string | null
+  summary: string
+  beforeJson: string | null
+  afterJson: string | null
+  createdAt: string
+}
+
+export type AdminImportResult = {
+  catalogType: string
+  importedCount: number
+  errors: string[]
 }
 
 export type AuthUser = {

@@ -7,3 +7,10 @@ export function useDashboard() {
     queryFn: dashboardApi.getDashboard,
   })
 }
+
+export function useDashboardSummary() {
+  return useQuery({
+    queryKey: ['dashboard', 'summary'],
+    queryFn: dashboardApi.getDashboardSummary,
+  })
+}

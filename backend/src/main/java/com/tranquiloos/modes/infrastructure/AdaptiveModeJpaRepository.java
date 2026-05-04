@@ -10,5 +10,7 @@ public interface AdaptiveModeJpaRepository extends JpaRepository<AdaptiveModeEnt
 
 	List<AdaptiveModeEntity> findByActiveTrueOrderBySortOrderAsc();
 
+	List<AdaptiveModeEntity> findAllByOrderBySortOrderAscNameAsc();
+
 	Optional<AdaptiveModeEntity> findByCodeAndActiveTrue(ModeCode code);
 }

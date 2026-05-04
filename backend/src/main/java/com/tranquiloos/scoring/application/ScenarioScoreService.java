@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tranquiloos.decisions.application.DecisionEventService;
+import com.tranquiloos.decisions.domain.DecisionType;
 import com.tranquiloos.expenses.api.ScenarioExpenseResponse;
 import com.tranquiloos.expenses.application.ExpenseService;
 import com.tranquiloos.scenarios.application.ScenarioService;
@@ -38,6 +40,7 @@ public class ScenarioScoreService {
 	private final ScoreFactorRepository factorRepository;
 	private final RiskFactorRepository riskRepository;
 	private final ObjectMapper objectMapper;
+	private final DecisionEventService decisionEventService;
 	private final ScoreEngine scoreEngine = new ScoreEngine();
 
 	public ScenarioScoreService(
@@ -46,18 +49,23 @@ public class ScenarioScoreService {
 			ScoreSnapshotRepository snapshotRepository,
 			ScoreFactorRepository factorRepository,
 			RiskFactorRepository riskRepository,
-			ObjectMapper objectMapper) {
+			ObjectMapper objectMapper,
+			DecisionEventService decisionEventService) {
 		this.scenarioService = scenarioService;
 		this.expenseService = expenseService;
 		this.snapshotRepository = snapshotRepository;
 		this.factorRepository = factorRepository;
 		this.riskRepository = riskRepository;
 		this.objectMapper = objectMapper;
+		this.decisionEventService = decisionEventService;
 	}
 
 	@Transactional
 	public ScoreResponse calculateScore(Long scenarioId) {
 		ScenarioEntity scenario = scenarioService.findCurrentUserScenario(scenarioId);
+		Integer previousScore = snapshotRepository.findFirstByScenarioIdOrderByCreatedAtDesc(scenario.getId())
+				.map(ScoreSnapshotEntity::getScore)
+				.orElse(null);
 		List<ScenarioExpenseResponse> expenses = expenseService.listScenarioExpenses(scenario.getId());
 		ScoreInput input = toInput(scenario, expenses);
 		ScoreResult result = scoreEngine.calculate(input);
@@ -79,6 +87,17 @@ public class ScenarioScoreService {
 				.stream()
 				.map(risk -> riskRepository.save(toEntity(savedSnapshot.getId(), risk)))
 				.toList();
+		decisionEventService.saveEvent(
+				scenario.getUserId(),
+				scenario.getId(),
+				null,
+				DecisionType.SCORE_CALCULATED,
+				"Calculate independence score",
+				result.status().name(),
+				previousScore,
+				result.score(),
+				result.summary(),
+				toJson(result));
 
 		return toResponse(savedSnapshot, savedFactors, savedRisks);
 	}
@@ -194,9 +213,9 @@ public class ScenarioScoreService {
 		return new RiskFactorResponse(risk.getRiskKey(), risk.getSeverity(), risk.getTitle(), risk.getExplanation());
 	}
 
-	private String toJson(ScoreInput input) {
+	private String toJson(Object value) {
 		try {
-			return objectMapper.writeValueAsString(input);
+			return objectMapper.writeValueAsString(value);
 		} catch (JsonProcessingException exception) {
 			return "{}";
 		}

@@ -15,6 +15,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -77,21 +79,47 @@ public class MealCatalogItemEntity {
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
+	@PrePersist
+	void prePersist() {
+		Instant now = Instant.now();
+		this.createdAt = now;
+		this.updatedAt = now;
+	}
+
+	@PreUpdate
+	void preUpdate() {
+		this.updatedAt = Instant.now();
+	}
+
 	public Long getId() { return id; }
 	public String getCode() { return code; }
+	public void setCode(String code) { this.code = code; }
 	public String getName() { return name; }
+	public void setName(String name) { this.name = name; }
 	public String getCategory() { return category; }
+	public void setCategory(String category) { this.category = category; }
 	public BigDecimal getEstimatedCostMin() { return estimatedCostMin; }
+	public void setEstimatedCostMin(BigDecimal estimatedCostMin) { this.estimatedCostMin = estimatedCostMin; }
 	public BigDecimal getEstimatedCostMax() { return estimatedCostMax; }
+	public void setEstimatedCostMax(BigDecimal estimatedCostMax) { this.estimatedCostMax = estimatedCostMax; }
 	public Integer getPrepTimeMinutes() { return prepTimeMinutes; }
+	public void setPrepTimeMinutes(Integer prepTimeMinutes) { this.prepTimeMinutes = prepTimeMinutes; }
 	public EffortLevel getEffortLevel() { return effortLevel; }
+	public void setEffortLevel(EffortLevel effortLevel) { this.effortLevel = effortLevel; }
 	public CravingLevel getCravingLevel() { return cravingLevel; }
+	public void setCravingLevel(CravingLevel cravingLevel) { this.cravingLevel = cravingLevel; }
 	public BudgetLevel getBudgetLevel() { return budgetLevel; }
+	public void setBudgetLevel(BudgetLevel budgetLevel) { this.budgetLevel = budgetLevel; }
 	public String getRequiredEquipment() { return requiredEquipment; }
+	public void setRequiredEquipment(String requiredEquipment) { this.requiredEquipment = requiredEquipment; }
 	public ModeCode getSuggestedMode() { return suggestedMode; }
+	public void setSuggestedMode(ModeCode suggestedMode) { this.suggestedMode = suggestedMode; }
 	public String getDescription() { return description; }
+	public void setDescription(String description) { this.description = description; }
 	public boolean isActive() { return active; }
+	public void setActive(boolean active) { this.active = active; }
 	public Integer getSortOrder() { return sortOrder; }
+	public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 	public Instant getCreatedAt() { return createdAt; }
 	public Instant getUpdatedAt() { return updatedAt; }
 }

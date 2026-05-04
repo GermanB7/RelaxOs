@@ -27,6 +27,9 @@ public class ExpenseCategoryEntity {
 	@Column(name = "is_active", nullable = false)
 	private boolean active = true;
 
+	@Column(name = "sort_order", nullable = false)
+	private Integer sortOrder = 100;
+
 	public Long getId() {
 		return id;
 	}
@@ -35,11 +38,39 @@ public class ExpenseCategoryEntity {
 		return code;
 	}
 
+	public void setCode(String code) {
+		this.code = code;
+	}
+
 	public String getName() {
 		return name;
 	}
 
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public Long getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(Long parentId) {
+		this.parentId = parentId;
+	}
+
 	public boolean isActive() {
 		return active;
+	}
+
+	public void setActive(boolean active) {
+		this.active = active;
+	}
+
+	public Integer getSortOrder() {
+		return sortOrder;
+	}
+
+	public void setSortOrder(Integer sortOrder) {
+		this.sortOrder = sortOrder;
 	}
 }

@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.tranquiloos.admin.infrastructure.AdminAuditLogRepository;
+import com.tranquiloos.admin.infrastructure.RecommendationCopyRepository;
 import com.tranquiloos.expenses.infrastructure.ExpenseCategoryRepository;
 import com.tranquiloos.expenses.infrastructure.ScenarioExpenseRepository;
 import com.tranquiloos.home.infrastructure.PurchaseCatalogItemJpaRepository;
@@ -17,6 +19,9 @@ import com.tranquiloos.scenarios.infrastructure.ScenarioRepository;
 import com.tranquiloos.scoring.infrastructure.RiskFactorRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreFactorRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotRepository;
+import com.tranquiloos.settings.infrastructure.SystemSettingRepository;
+import com.tranquiloos.transport.infrastructure.TransportEvaluationRepository;
+import com.tranquiloos.transport.infrastructure.TransportOptionRepository;
 import com.tranquiloos.users.infrastructure.AppUserRepository;
 import com.tranquiloos.users.infrastructure.UserProfileRepository;
 
@@ -71,6 +76,21 @@ class TranquiloosApplicationTests {
 
 	@MockitoBean
 	private MealCatalogItemJpaRepository mealCatalogItemJpaRepository;
+
+	@MockitoBean
+	private TransportOptionRepository transportOptionRepository;
+
+	@MockitoBean
+	private TransportEvaluationRepository transportEvaluationRepository;
+
+	@MockitoBean
+	private SystemSettingRepository systemSettingRepository;
+
+	@MockitoBean
+	private AdminAuditLogRepository adminAuditLogRepository;
+
+	@MockitoBean
+	private RecommendationCopyRepository recommendationCopyRepository;
 
 	@Test
 	void contextLoads() {

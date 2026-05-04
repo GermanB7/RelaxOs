@@ -9,5 +9,6 @@ public enum RecommendationType {
 	FOOD_DELIVERY,
 	DATA_QUALITY,
 	HOUSEHOLD_SETUP,
+	TRANSPORT,
 	GENERAL
 }

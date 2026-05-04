@@ -1,11 +1,10 @@
 package com.tranquiloos.recommendations.api;
 
-import java.util.List;
-
 import com.tranquiloos.recommendations.application.GetRecommendationsService;
 import com.tranquiloos.recommendations.application.RecommendationActionService;
 import com.tranquiloos.recommendations.application.RecommendationEngineService;
 import com.tranquiloos.recommendations.domain.RecommendationStatus;
+import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -58,8 +57,4 @@ public class RecommendationController {
 		return recommendationActionService.dismiss(id, request);
 	}
 
-	@GetMapping("/decisions")
-	List<DecisionEventResponse> listDecisions(@RequestParam(required = false) Long scenarioId) {
-		return getRecommendationsService.listDecisionEvents(scenarioId);
-	}
 }

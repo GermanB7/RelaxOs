@@ -1,10 +1,15 @@
 package com.tranquiloos.home.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.math.BigDecimal;
 
+import com.tranquiloos.home.domain.PurchaseStatus;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
+
 public record UpdatePurchaseStatusRequest(
-		@JsonProperty("status") String status,
-		@JsonProperty("actualPrice") BigDecimal actualPrice,
-		@JsonProperty("reason") String reason) {
+		@NotNull PurchaseStatus status,
+		@PositiveOrZero BigDecimal actualPrice,
+		@Size(max = 500) String reason) {
 }

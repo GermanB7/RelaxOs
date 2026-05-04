@@ -2,6 +2,7 @@ package com.tranquiloos.home.api;
 
 import com.tranquiloos.home.application.HomeSetupService;
 import com.tranquiloos.users.application.CurrentUserProvider;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +43,7 @@ public class HomeSetupController {
 	 * Initialize roadmap from catalog for a user and optional scenario.
 	 */
 	@PostMapping("/roadmap/initialize")
-	public ResponseEntity<Void> initializeRoadmap(@RequestBody CreateHomeRoadmapRequest request) {
+	public ResponseEntity<Void> initializeRoadmap(@Valid @RequestBody CreateHomeRoadmapRequest request) {
 		Long userId = currentUserProvider.currentUserId();
 		homeSetupService.initializeRoadmap(userId, request);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -83,7 +84,7 @@ public class HomeSetupController {
 	 */
 	@PostMapping("/roadmap/items")
 	public ResponseEntity<UserPurchaseItemResponse> createCustomItem(
-			@RequestBody CreateCustomPurchaseItemRequest request) {
+			@Valid @RequestBody CreateCustomPurchaseItemRequest request) {
 		Long userId = currentUserProvider.currentUserId();
 		UserPurchaseItemResponse response = homeSetupService.createCustomItem(userId, request);
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -95,7 +96,7 @@ public class HomeSetupController {
 	 */
 	@PutMapping("/roadmap/items/{id}")
 	public ResponseEntity<UserPurchaseItemResponse> updateItem(@PathVariable Long id,
-			@RequestBody UpdatePurchaseItemRequest request) {
+			@Valid @RequestBody UpdatePurchaseItemRequest request) {
 		Long userId = currentUserProvider.currentUserId();
 		UserPurchaseItemResponse response = homeSetupService.updateItem(userId, id, request);
 		return ResponseEntity.ok(response);
@@ -108,7 +109,7 @@ public class HomeSetupController {
 	 */
 	@PatchMapping("/roadmap/items/{id}/status")
 	public ResponseEntity<UserPurchaseItemResponse> updateItemStatus(@PathVariable Long id,
-			@RequestBody UpdatePurchaseStatusRequest request) {
+			@Valid @RequestBody UpdatePurchaseStatusRequest request) {
 		Long userId = currentUserProvider.currentUserId();
 		UserPurchaseItemResponse response = homeSetupService.updateItemStatus(userId, id, request);
 		return ResponseEntity.ok(response);

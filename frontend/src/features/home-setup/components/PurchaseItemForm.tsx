@@ -24,6 +24,7 @@ export function PurchaseItemForm({
     link: item?.link || '',
     notes: item?.notes || '',
   });
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const createMutation = useCreateCustomPurchaseItem();
   const updateMutation = useUpdatePurchaseItem();
@@ -41,6 +42,7 @@ export function PurchaseItemForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
 
     try {
       if (item) {
@@ -70,8 +72,8 @@ export function PurchaseItemForm({
         await createMutation.mutateAsync(request);
       }
       onSuccess?.();
-    } catch (error) {
-      console.error('Error saving item:', error);
+    } catch {
+      setSubmitError('No se pudo guardar el item. Revisa los campos e intenta de nuevo.');
     }
   };
 
@@ -203,6 +205,10 @@ export function PurchaseItemForm({
             </button>
           )}
         </div>
+
+        {submitError && (
+          <p className="text-sm font-medium text-red-700">{submitError}</p>
+        )}
       </form>
     </div>
   );

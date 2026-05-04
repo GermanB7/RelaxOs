@@ -11,6 +11,10 @@ public interface PurchaseCatalogItemJpaRepository extends JpaRepository<Purchase
 
 	Optional<PurchaseCatalogItemEntity> findByCode(String code);
 
+	Optional<PurchaseCatalogItemEntity> findByCodeIgnoreCase(String code);
+
+	List<PurchaseCatalogItemEntity> findAllByOrderByTierAscSortOrderAscCategoryAscNameAsc();
+
 	List<PurchaseCatalogItemEntity> findByIsActiveOrderByTierAscSortOrderAscCategoryAscNameAsc(Boolean isActive);
 
 	List<PurchaseCatalogItemEntity> findByIsActiveAndTierOrderByTierAscSortOrderAscCategoryAscNameAsc(Boolean isActive,

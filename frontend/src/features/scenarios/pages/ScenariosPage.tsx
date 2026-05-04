@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { EmptyState } from '../../../shared/components/EmptyState'
 import { PageHeader } from '../../../shared/components/PageHeader'
 import { ScenarioForm } from '../components/ScenarioForm'
@@ -28,9 +29,19 @@ export function ScenariosPage() {
       </section>
 
       <section className="mt-8">
-        <h3 className="text-base font-semibold text-slate-950">
-          Your scenarios
-        </h3>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <h3 className="text-base font-semibold text-slate-950">
+            Your scenarios
+          </h3>
+          {scenarios.length >= 2 && (
+            <Link
+              to="/scenarios/compare"
+              className="text-sm font-semibold text-teal-700"
+            >
+              Compare scenarios
+            </Link>
+          )}
+        </div>
         {scenariosQuery.isLoading && (
           <p className="mt-4 text-sm text-slate-600">Loading scenarios...</p>
         )}

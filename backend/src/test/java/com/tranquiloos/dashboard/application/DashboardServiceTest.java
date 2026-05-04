@@ -22,6 +22,7 @@ import com.tranquiloos.recommendations.domain.RecommendationSeverity;
 import com.tranquiloos.recommendations.domain.RecommendationStatus;
 import com.tranquiloos.recommendations.infrastructure.RecommendationEntity;
 import com.tranquiloos.recommendations.infrastructure.RecommendationJpaRepository;
+import com.tranquiloos.recommendations.infrastructure.DecisionEventJpaRepository;
 import com.tranquiloos.scenarios.api.ScenarioResponse;
 import com.tranquiloos.scenarios.api.ScenarioSummaryResponse;
 import com.tranquiloos.scenarios.application.ScenarioService;
@@ -33,6 +34,7 @@ import com.tranquiloos.scoring.infrastructure.RiskFactorEntity;
 import com.tranquiloos.scoring.infrastructure.RiskFactorRepository;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotEntity;
 import com.tranquiloos.scoring.infrastructure.ScoreSnapshotRepository;
+import com.tranquiloos.transport.infrastructure.TransportEvaluationRepository;
 import com.tranquiloos.users.api.ProfileResponse;
 import com.tranquiloos.users.application.CurrentUserProvider;
 import com.tranquiloos.users.application.ProfileService;
@@ -70,6 +72,12 @@ class DashboardServiceTest {
 	@Mock
 	private HomeSetupService homeSetupService;
 
+	@Mock
+	private DecisionEventJpaRepository decisionEventRepository;
+
+	@Mock
+	private TransportEvaluationRepository transportEvaluationRepository;
+
 	private DashboardService dashboardService;
 
 	@BeforeEach
@@ -82,7 +90,9 @@ class DashboardServiceTest {
 				riskFactorRepository,
 				recommendationRepository,
 				activeModeProvider,
-				homeSetupService);
+				homeSetupService,
+				decisionEventRepository,
+				transportEvaluationRepository);
 		when(currentUserProvider.currentUserId()).thenReturn(1L);
 		when(profileService.getCurrentProfile()).thenReturn(new ProfileResponse("Local User", "Bogota", "COP", null));
 		when(activeModeProvider.currentSummary()).thenReturn(ActiveModeSummaryResponse.empty());

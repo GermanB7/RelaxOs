@@ -4,11 +4,14 @@ import { useAuth } from '../features/auth/hooks/useAuth'
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/scenarios', label: 'Scenarios' },
+  { to: '/scenarios/compare', label: 'Compare' },
   { to: '/recommendations', label: 'Recommendations' },
+  { to: '/decisions', label: 'Decisions' },
   { to: '/home-setup', label: 'Home Setup' },
   { to: '/modes', label: 'Modes' },
   { to: '/meals', label: 'Meals' },
   { to: '/settings', label: 'Settings' },
+  { to: '/admin', label: 'Admin' },
 ]
 
 export function AppLayout() {

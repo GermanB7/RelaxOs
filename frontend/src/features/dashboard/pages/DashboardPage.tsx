@@ -1,22 +1,25 @@
 import { PageHeader } from '../../../shared/components/PageHeader'
-import { DashboardActiveModeCard } from '../components/DashboardActiveModeCard'
-import { DashboardHomeSetupCard } from '../components/DashboardHomeSetupCard'
-import { DashboardMealCtaCard } from '../components/DashboardMealCtaCard'
-import { DashboardQuickActions } from '../components/DashboardQuickActions'
-import { DashboardRecommendationsCard } from '../components/DashboardRecommendationsCard'
-import { DashboardScenarioCard } from '../components/DashboardScenarioCard'
-import { DashboardScoreCard } from '../components/DashboardScoreCard'
-import { useDashboard } from '../hooks/useDashboard'
+import { CriticalRisksCard } from '../components/CriticalRisksCard'
+import { CurrentStateCard } from '../components/CurrentStateCard'
+import { DecisionTimelinePreview } from '../components/DecisionTimelinePreview'
+import { FinancialSnapshotCard } from '../components/FinancialSnapshotCard'
+import { HomePriorityCard } from '../components/HomePriorityCard'
+import { MealSuggestionCard } from '../components/MealSuggestionCard'
+import { QuickActionsGrid } from '../components/QuickActionsGrid'
+import { ScenarioComparisonSummaryCard } from '../components/ScenarioComparisonSummaryCard'
+import { TopRecommendationsCard } from '../components/TopRecommendationsCard'
+import { TransportSummaryCard } from '../components/TransportSummaryCard'
+import { useDashboardSummary } from '../hooks/useDashboard'
 
 export function DashboardPage() {
-  const dashboardQuery = useDashboard()
+  const dashboardQuery = useDashboardSummary()
 
   if (dashboardQuery.isLoading) {
     return (
       <>
         <PageHeader
           title="Dashboard"
-          description="Loading your command center..."
+          description="Loading the command center..."
         />
         <div className="rounded-lg border border-slate-200 bg-white p-4 text-sm text-slate-600 shadow-sm">
           Loading dashboard...
@@ -45,37 +48,34 @@ export function DashboardPage() {
     <>
       <PageHeader
         title="Dashboard"
-        description={`Hi ${dashboard.profile.displayName ?? 'there'}${
-          dashboard.profile.city ? ` from ${dashboard.profile.city}` : ''
-        }. Use this as the MVP command center.`}
+        description="A decision-first view of status, risk, next action, mode, transport, home setup and recent choices."
       />
 
       <div className="grid gap-4">
-        <DashboardScenarioCard scenario={dashboard.primaryScenario} />
-
-        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-          <DashboardScoreCard
-            scenarioId={dashboard.primaryScenario?.id}
-            score={dashboard.latestScore}
-            risks={dashboard.topRisks}
-          />
-          <DashboardActiveModeCard activeMode={dashboard.activeMode} />
-        </div>
-
-        <DashboardQuickActions scenarioId={dashboard.primaryScenario?.id} />
-
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <DashboardRecommendationsCard
-              recommendations={dashboard.topRecommendations}
-            />
-          </div>
+        <CurrentStateCard summary={dashboard} />
+        <QuickActionsGrid actions={dashboard.quickActions} />
+        <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+          <FinancialSnapshotCard snapshot={dashboard.financialSnapshot} />
           <div className="grid gap-4">
-            <DashboardHomeSetupCard homeSetup={dashboard.homeSetup} />
-            <DashboardMealCtaCard
-              suggestedCta={dashboard.mealPlanner.suggestedCta}
+            <CriticalRisksCard mainRisk={dashboard.mainRisk} />
+            <TransportSummaryCard
+              scenarioId={dashboard.activeScenario?.id}
+              transport={dashboard.transportSummary}
             />
           </div>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <TopRecommendationsCard
+            recommendations={dashboard.topRecommendations}
+          />
+          <ScenarioComparisonSummaryCard
+            comparison={dashboard.scenarioComparisonSummary}
+          />
+          <HomePriorityCard homePriority={dashboard.homePriority} />
+          <MealSuggestionCard mealSuggestion={dashboard.mealSuggestion} />
+        </div>
+        <div>
+          <DecisionTimelinePreview events={dashboard.recentDecisionEvents} />
         </div>
       </div>
     </>

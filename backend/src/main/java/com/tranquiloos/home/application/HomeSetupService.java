@@ -14,13 +14,20 @@ import com.tranquiloos.home.infrastructure.UserPurchaseItemEntity;
 import com.tranquiloos.home.infrastructure.UserPurchaseItemJpaRepository;
 import com.tranquiloos.recommendations.infrastructure.DecisionEventEntity;
 import com.tranquiloos.recommendations.infrastructure.DecisionEventJpaRepository;
+import com.tranquiloos.scenarios.application.ScenarioService;
 import com.tranquiloos.shared.error.ResourceNotFoundException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tranquiloos.decisions.domain.DecisionType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -30,16 +37,22 @@ public class HomeSetupService {
 	private final PurchaseCatalogService catalogService;
 	private final HomeSetupPriorityService priorityService;
 	private final DecisionEventJpaRepository decisionEventRepository;
+	private final ScenarioService scenarioService;
+	private final ObjectMapper objectMapper;
 
 	public HomeSetupService(
 			UserPurchaseItemJpaRepository userPurchaseRepository,
 			PurchaseCatalogService catalogService,
 			HomeSetupPriorityService priorityService,
-			DecisionEventJpaRepository decisionEventRepository) {
+			DecisionEventJpaRepository decisionEventRepository,
+			ScenarioService scenarioService,
+			ObjectMapper objectMapper) {
 		this.userPurchaseRepository = userPurchaseRepository;
 		this.catalogService = catalogService;
 		this.priorityService = priorityService;
 		this.decisionEventRepository = decisionEventRepository;
+		this.scenarioService = scenarioService;
+		this.objectMapper = objectMapper;
 	}
 
 	public List<PurchaseCatalogItemResponse> getCatalog(String tier, String category) {
@@ -49,6 +62,7 @@ public class HomeSetupService {
 	@Transactional
 	public void initializeRoadmap(Long userId, CreateHomeRoadmapRequest request) {
 		Long scenarioId = request.scenarioId();
+		validateScenarioOwnership(scenarioId);
 		List<PurchaseCatalogItemEntity> catalogItems = catalogService.getAllActiveCatalogItems();
 
 		for (PurchaseCatalogItemEntity catalogItem : catalogItems) {
@@ -168,7 +182,8 @@ public class HomeSetupService {
 				request.scenarioId(),
 				request.name(),
 				request.category(),
-				request.tier());
+				request.tier().name());
+		validateScenarioOwnership(request.scenarioId());
 
 		item.setEstimatedPrice(request.estimatedPrice());
 		item.setLink(request.link());
@@ -178,7 +193,7 @@ public class HomeSetupService {
 		if (request.priority() != null) {
 			item.setPriority(request.priority());
 		} else {
-			item.setPriority(priorityService.calculateDefaultPriority(request.tier()));
+			item.setPriority(priorityService.calculateDefaultPriority(request.tier().name()));
 		}
 
 		UserPurchaseItemEntity saved = userPurchaseRepository.save(item);
@@ -201,7 +216,7 @@ public class HomeSetupService {
 			item.setCategory(request.category());
 		}
 		if (request.tier() != null) {
-			item.setTier(request.tier());
+			item.setTier(request.tier().name());
 		}
 		if (request.estimatedPrice() != null) {
 			item.setEstimatedPrice(request.estimatedPrice());
@@ -233,13 +248,14 @@ public class HomeSetupService {
 		}
 
 		String previousStatus = item.getStatus();
-		item.setStatus(request.status());
+		String newStatus = request.status().name();
+		item.setStatus(newStatus);
 
 		if (request.actualPrice() != null) {
 			item.setActualPrice(request.actualPrice());
 		}
 
-		if (request.status().equals(PurchaseStatus.BOUGHT.name())) {
+		if (request.status() == PurchaseStatus.BOUGHT) {
 			item.setPurchasedAt(LocalDateTime.now());
 		}
 
@@ -249,19 +265,16 @@ public class HomeSetupService {
 		DecisionEventEntity decisionEvent = new DecisionEventEntity();
 		decisionEvent.setUserId(userId);
 		decisionEvent.setScenarioId(item.getScenarioId());
-		decisionEvent.setDecisionType("PURCHASE_STATUS_CHANGED");
+		decisionEvent.setDecisionType(purchaseDecisionType(request.status()).name());
 		decisionEvent.setQuestion(item.getName());
-		decisionEvent.setChosenOption(request.status());
+		decisionEvent.setChosenOption(newStatus);
 		decisionEvent.setReason(request.reason());
-
-		// Build context JSON
-		String contextJson = String.format(
-				"{\"itemId\":%d,\"previousStatus\":\"%s\",\"newStatus\":\"%s\",\"actualPrice\":%s}",
-				itemId,
-				previousStatus,
-				request.status(),
-				request.actualPrice() != null ? request.actualPrice() : "null");
-		decisionEvent.setContextJson(contextJson);
+		Map<String, Object> context = new HashMap<>();
+		context.put("itemId", itemId);
+		context.put("previousStatus", previousStatus);
+		context.put("newStatus", newStatus);
+		context.put("actualPrice", request.actualPrice());
+		decisionEvent.setContextJson(toJson(context));
 
 		decisionEventRepository.save(decisionEvent);
 
@@ -306,9 +319,31 @@ public class HomeSetupService {
 	private BigDecimal calculateMidpointPrice(PurchaseCatalogItemEntity catalogItem) {
 		if (catalogItem.getEstimatedMinPrice() != null && catalogItem.getEstimatedMaxPrice() != null) {
 			return catalogItem.getEstimatedMinPrice().add(catalogItem.getEstimatedMaxPrice())
-					.divide(BigDecimal.valueOf(2), BigDecimal.ROUND_HALF_UP);
+					.divide(BigDecimal.valueOf(2), RoundingMode.HALF_UP);
 		}
 		return catalogItem.getEstimatedMinPrice() != null ? catalogItem.getEstimatedMinPrice()
 				: catalogItem.getEstimatedMaxPrice();
+	}
+
+	private void validateScenarioOwnership(Long scenarioId) {
+		if (scenarioId != null) {
+			scenarioService.findCurrentUserScenario(scenarioId);
+		}
+	}
+
+	private String toJson(Object value) {
+		try {
+			return objectMapper.writeValueAsString(value);
+		} catch (JsonProcessingException exception) {
+			return "{}";
+		}
+	}
+
+	private DecisionType purchaseDecisionType(PurchaseStatus status) {
+		return switch (status) {
+			case BOUGHT -> DecisionType.PURCHASE_BOUGHT;
+			case POSTPONED -> DecisionType.PURCHASE_POSTPONED;
+			default -> DecisionType.PURCHASE_POSTPONED;
+		};
 	}
 }

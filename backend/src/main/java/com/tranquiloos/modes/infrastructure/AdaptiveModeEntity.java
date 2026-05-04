@@ -16,6 +16,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -77,20 +78,37 @@ public class AdaptiveModeEntity {
 	@Column(name = "updated_at", nullable = false)
 	private Instant updatedAt;
 
+	@PreUpdate
+	void preUpdate() {
+		this.updatedAt = Instant.now();
+	}
+
 	public Long getId() { return id; }
 	public ModeCode getCode() { return code; }
 	public String getName() { return name; }
+	public void setName(String name) { this.name = name; }
 	public String getDescription() { return description; }
+	public void setDescription(String description) { this.description = description; }
 	public String getObjective() { return objective; }
+	public void setObjective(String objective) { this.objective = objective; }
 	public Integer getRecommendedMinDays() { return recommendedMinDays; }
+	public void setRecommendedMinDays(Integer recommendedMinDays) { this.recommendedMinDays = recommendedMinDays; }
 	public Integer getRecommendedMaxDays() { return recommendedMaxDays; }
+	public void setRecommendedMaxDays(Integer recommendedMaxDays) { this.recommendedMaxDays = recommendedMaxDays; }
 	public IntensityLevel getIntensityLevel() { return intensityLevel; }
+	public void setIntensityLevel(IntensityLevel intensityLevel) { this.intensityLevel = intensityLevel; }
 	public SpendingPolicy getSpendingPolicy() { return spendingPolicy; }
+	public void setSpendingPolicy(SpendingPolicy spendingPolicy) { this.spendingPolicy = spendingPolicy; }
 	public AlertPolicy getAlertPolicy() { return alertPolicy; }
+	public void setAlertPolicy(AlertPolicy alertPolicy) { this.alertPolicy = alertPolicy; }
 	public PurchasePolicy getPurchasePolicy() { return purchasePolicy; }
+	public void setPurchasePolicy(PurchasePolicy purchasePolicy) { this.purchasePolicy = purchasePolicy; }
 	public RoutinePolicy getRoutinePolicy() { return routinePolicy; }
+	public void setRoutinePolicy(RoutinePolicy routinePolicy) { this.routinePolicy = routinePolicy; }
 	public boolean isActive() { return active; }
+	public void setActive(boolean active) { this.active = active; }
 	public Integer getSortOrder() { return sortOrder; }
+	public void setSortOrder(Integer sortOrder) { this.sortOrder = sortOrder; }
 	public Instant getCreatedAt() { return createdAt; }
 	public Instant getUpdatedAt() { return updatedAt; }
 }
